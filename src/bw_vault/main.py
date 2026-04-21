@@ -21,8 +21,9 @@ def cmd_exec(args: list[str]) -> None:
     config = load_config()
     fields = get_profile(config, profile)
 
+    bw_session = ensure_bw_session()
     env_vars = resolve_fields(fields)
-    env = {**os.environ, **env_vars}
+    env = {**os.environ, "BW_SESSION": bw_session, **env_vars}
 
     if not cmd:
         shell = os.environ.get("SHELL", "/bin/sh")

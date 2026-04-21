@@ -36,12 +36,13 @@ class TestMain:
 
 
 class TestCmdExec:
-    def _run(self, args, config=None, resolved=None):
+    def _run(self, args, config=None, resolved=None, session="tok123"):
         config = config or {"default": {}}
         resolved = resolved or {}
         with (
             patch("bw_vault.main.load_config", return_value=config),
             patch("bw_vault.main.get_profile", return_value=config.get("default", {})),
+            patch("bw_vault.main.ensure_bw_session", return_value=session),
             patch("bw_vault.main.resolve_fields", return_value=resolved),
             patch("os.execvpe") as mock_exec,
         ):
@@ -52,6 +53,7 @@ class TestCmdExec:
         with (
             patch("bw_vault.main.load_config", return_value={}),
             patch("bw_vault.main.get_profile", return_value={}) as mock_get,
+            patch("bw_vault.main.ensure_bw_session", return_value="tok"),
             patch("bw_vault.main.resolve_fields", return_value={}),
             patch("os.execvpe"),
         ):
@@ -63,6 +65,7 @@ class TestCmdExec:
         with (
             patch("bw_vault.main.load_config", return_value=config),
             patch("bw_vault.main.get_profile", return_value={"K": "I:f"}) as mock_get,
+            patch("bw_vault.main.ensure_bw_session", return_value="tok"),
             patch("bw_vault.main.resolve_fields", return_value={}),
             patch("os.execvpe"),
         ):
@@ -82,6 +85,11 @@ class TestCmdExec:
         args = mock_exec.call_args[0]
         assert args[0] == "/bin/zsh"
 
+    def test_injects_bw_session(self):
+        mock_exec = self._run(["--", "env"], session="mysession")
+        env = mock_exec.call_args[0][2]
+        assert env["BW_SESSION"] == "mysession"
+
     def test_injects_resolved_env_vars(self):
         resolved = {"MY_KEY": "secret_value"}
         mock_exec = self._run(["--", "env"], resolved=resolved)
@@ -93,6 +101,7 @@ class TestCmdExec:
         with (
             patch("bw_vault.main.load_config", return_value=config),
             patch("bw_vault.main.get_profile", return_value={}) as mock_get,
+            patch("bw_vault.main.ensure_bw_session", return_value="tok"),
             patch("bw_vault.main.resolve_fields", return_value={}),
             patch("os.execvpe"),
         ):
