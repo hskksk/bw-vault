@@ -9,6 +9,9 @@ dependencies = [
 [project.scripts]
 bw-vault = "bw_vault.main:main"
 
+[dependency-groups]
+dev = ["pytest"]
+
 [tool.hatch.metadata]
 allow-direct-references = true
 
