@@ -1,6 +1,8 @@
 import os
 import sys
 
+from importlib.metadata import version as get_version
+
 from .bw_session import ensure_bw_session
 from .config import get_profile, load_config
 from .vault import resolve_fields
@@ -52,6 +54,8 @@ def main() -> None:
         cmd_exec(rest)
     elif command == "run":
         cmd_run(rest)
+    elif command == "version":
+        print(get_version("bw-vault"))
     else:
         _usage()
         sys.exit(1)
@@ -60,3 +64,4 @@ def main() -> None:
 def _usage() -> None:
     print("Usage: bw-vault exec [<profile>] [-- <command> [args...]]", file=sys.stderr)
     print("       bw-vault run <command> [args...]", file=sys.stderr)
+    print("       bw-vault version", file=sys.stderr)
