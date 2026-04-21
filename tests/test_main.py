@@ -108,6 +108,42 @@ class TestCmdExec:
             cmd_exec(["staging", "--", "printenv"])
         mock_get.assert_called_once_with(config, "staging")
 
+    def test_verbose_flag_parses_and_passes_to_resolve_fields(self):
+        config = {"default": {}}
+        with (
+            patch("bw_vault.main.load_config", return_value=config),
+            patch("bw_vault.main.get_profile", return_value={}),
+            patch("bw_vault.main.ensure_bw_session", return_value="tok"),
+            patch("bw_vault.main.resolve_fields", return_value={}) as mock_resolve,
+            patch("os.execvpe"),
+        ):
+            cmd_exec(["--verbose", "myprofile", "--", "ls"])
+        mock_resolve.assert_called_once_with({}, verbose=True)
+
+    def test_verbose_short_flag_parses_and_passes_to_resolve_fields(self):
+        config = {"default": {}}
+        with (
+            patch("bw_vault.main.load_config", return_value=config),
+            patch("bw_vault.main.get_profile", return_value={}),
+            patch("bw_vault.main.ensure_bw_session", return_value="tok"),
+            patch("bw_vault.main.resolve_fields", return_value={}) as mock_resolve,
+            patch("os.execvpe"),
+        ):
+            cmd_exec(["-v", "myprofile", "--", "ls"])
+        mock_resolve.assert_called_once_with({}, verbose=True)
+
+    def test_verbose_flag_with_default_profile(self):
+        config = {"default": {}}
+        with (
+            patch("bw_vault.main.load_config", return_value=config),
+            patch("bw_vault.main.get_profile", return_value={}) as mock_get,
+            patch("bw_vault.main.ensure_bw_session", return_value="tok"),
+            patch("bw_vault.main.resolve_fields", return_value={}),
+            patch("os.execvpe"),
+        ):
+            cmd_exec(["--verbose", "--", "ls"])
+        mock_get.assert_called_once_with(config, "default")
+
 
 class TestCmdRun:
     def test_no_args_exits(self):

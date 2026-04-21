@@ -18,6 +18,8 @@ def cmd_exec(args: list[str]) -> None:
         if arg in ("-v", "--verbose"):
             verbose = True
         elif arg == "--":
+            # Re-insert the -- to be handled below
+            args.insert(0, "--")
             break
         else:
             # Re-insert unknown flag or just continue
@@ -29,6 +31,11 @@ def cmd_exec(args: list[str]) -> None:
         args = args[1:]
     if args and args[0] == "--":
         cmd = args[1:]
+
+    if verbose:
+        print(
+            f"bw-vault: profile={profile}, cmd={cmd}, args_left={args}", file=sys.stderr
+        )
 
     config = load_config()
     fields = get_profile(config, profile)
