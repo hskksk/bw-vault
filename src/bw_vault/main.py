@@ -11,6 +11,18 @@ from .vault import resolve_fields
 def cmd_exec(args: list[str]) -> None:
     profile = "default"
     cmd: list[str] = []
+    verbose = False
+
+    while args and args[0].startswith("-"):
+        arg = args.pop(0)
+        if arg in ("-v", "--verbose"):
+            verbose = True
+        elif arg == "--":
+            break
+        else:
+            # Re-insert unknown flag or just continue
+            args.insert(0, arg)
+            break
 
     if args and args[0] != "--":
         profile = args[0]
@@ -22,7 +34,7 @@ def cmd_exec(args: list[str]) -> None:
     fields = get_profile(config, profile)
 
     bw_session = ensure_bw_session()
-    env_vars = resolve_fields(fields)
+    env_vars = resolve_fields(fields, verbose=verbose)
     env = {**os.environ, "BW_SESSION": bw_session, **env_vars}
 
     if not cmd:
@@ -63,6 +75,9 @@ def main() -> None:
 
 
 def _usage() -> None:
-    print("Usage: bw-vault exec [<profile>] [-- <command> [args...]]", file=sys.stderr)
+    print(
+        "Usage: bw-vault exec [-v|--verbose] [<profile>] [-- <command> [args...]]",
+        file=sys.stderr,
+    )
     print("       bw-vault run <command> [args...]", file=sys.stderr)
     print("       bw-vault version", file=sys.stderr)

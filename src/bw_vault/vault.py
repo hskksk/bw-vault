@@ -59,7 +59,7 @@ def _fetch_from_bw(item_name: str, field_name: str, bw_session: str) -> str:
     return ""
 
 
-def resolve_fields(fields: dict[str, str]) -> dict[str, str]:
+def resolve_fields(fields: dict[str, str], verbose: bool = False) -> dict[str, str]:
     """
     Resolve {ENV_VAR: "item_name:field_name"} using the cache/session state machine.
 
@@ -79,8 +79,10 @@ def resolve_fields(fields: dict[str, str]) -> dict[str, str]:
 
     # Phase 1: Cache session check
     if not cc_session.check_session():
+        if verbose:
+            print("cli-cache: session expired", file=sys.stderr)
         cc_cache.clear_all_cache()
-        return _phase2(parsed, need_all=True)
+        return _phase2(parsed, need_all=True, verbose=verbose)
 
     session_key, expires_at = cc_session.get_session_key(_SESSION_TTL)
 
@@ -90,22 +92,26 @@ def resolve_fields(fields: dict[str, str]) -> dict[str, str]:
     for env_var, item_name, field_name in parsed:
         key = _cache_key(item_name, field_name)
         if cc_cache.check_cache(key, session_key):
+            if verbose:
+                print(f"cli-cache: hit for {item_name}:{field_name}", file=sys.stderr)
             value = cc_cache.read_cache(key, session_key)
             result[env_var] = value or ""
         else:
+            if verbose:
+                print(f"cli-cache: miss for {item_name}:{field_name}", file=sys.stderr)
             missing.append((env_var, item_name, field_name))
 
     if not missing:
         return result  # Full hit
 
     # Phase 2: fetch missing items
-    fetched = _phase2(missing, need_all=False)
+    fetched = _phase2(missing, need_all=False, verbose=verbose)
     result.update(fetched)
     return result
 
 
 def _phase2(
-    items: list[tuple[str, str, str]], *, need_all: bool
+    items: list[tuple[str, str, str]], *, need_all: bool, verbose: bool = False
 ) -> dict[str, str]:
     """Ensure BW session and fetch items, updating cache."""
     bw_session = ensure_bw_session()
@@ -113,6 +119,8 @@ def _phase2(
 
     result: dict[str, str] = {}
     for env_var, item_name, field_name in items:
+        if verbose:
+            print(f"bw-vault: fetching {item_name}:{field_name}", file=sys.stderr)
         value = _fetch_from_bw(item_name, field_name, bw_session)
         key = _cache_key(item_name, field_name)
         cc_cache.write_cache(key, value, session_key, expires_at)
