@@ -41,28 +41,50 @@ echo "your-master-password" | age -r "$(cat ~/.ssh/id_ed25519.pub)" > ~/.bw_pass
 ## Usage
 
 ### `exec` — inject secrets into a command
-
-```bash
-# Open a shell with secrets from the [default] profile
-bw-vault exec
-
-# Run a command with secrets from the [default] profile
-bw-vault exec -- some-command --flag
-
-# Use a named profile
-bw-vault exec work -- some-command
-
-# Named profile with arguments
-bw-vault exec work -- printenv DB_PASSWORD
-```
-
-### `run` — run a command with BW_SESSION set
-
-```bash
-bw-vault run bw list items
-```
-
-Ensures the Bitwarden session is unlocked and sets `BW_SESSION` in the environment before executing the command. Useful for running `bw` commands directly.
+ 
+ ```bash
+-# Open a shell with secrets from the [default] profile
+-bw-vault exec
+-
+-# Run a command with secrets from the [default] profile
+-bw-vault exec -- some-command --flag
+-
+-# Use a named profile
+-bw-vault exec work -- some-command
+-
+-# Named profile with arguments
+-bw-vault exec work -- printenv DB_PASSWORD
++# Usage: bw-vault exec [-v|--verbose] [<profile>] [-- <command> [args...]]
++
++# Open a shell with secrets from the [default] profile
++bw-vault exec
++
++# Run a command with secrets from the [default] profile
++bw-vault exec -- some-command --flag
++
++# Use a named profile
++bw-vault exec work -- some-command
++
++# Named profile with arguments
++bw-vault exec work -- printenv DB_PASSWORD
++
++# Use verbose mode to see cache hit/miss status
++bw-vault exec -v -- printenv DB_PASSWORD
+ ```
+ 
+ ### `run` — run a command with BW_SESSION set
+@@ -63,6 +64,14 @@ bw-vault run bw list items
+ 
+ Ensures the Bitwarden session is unlocked and sets `BW_SESSION` in the environment before executing the command. Useful for running `bw` commands directly.
+ 
++### `version` — show version
++
++```bash
++bw-vault version
++```
++
++Prints the current version of `bw-vault`.
++
 
 ## How it works
 

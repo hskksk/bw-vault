@@ -1,6 +1,6 @@
 [project]
 name = "bw-vault"
-version = "0.1.5"
+version = "0.1.6"
 requires-python = ">=3.12"
 dependencies = [
     "cli-cache @ git+https://github.com/hskksk/cli-cache",
